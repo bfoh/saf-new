@@ -1,0 +1,21 @@
+src/app.module.ts(10,31): error TS2307: Cannot find module './modules/courses/courses.module' or its corresponding type declarations.
+src/app.module.ts(11,33): error TS2307: Cannot find module './modules/exercises/exercises.module' or its corresponding type declarations.
+src/app.module.ts(12,34): error TS2307: Cannot find module './modules/vocabulary/vocabulary.module' or its corresponding type declarations.
+src/app.module.ts(13,36): error TS2307: Cannot find module './modules/gamification/gamification.module' or its corresponding type declarations.
+src/app.module.ts(14,33): error TS2307: Cannot find module './modules/analytics/analytics.module' or its corresponding type declarations.
+src/modules/auth/auth.controller.ts(85,49): error TS2339: Property 'id' does not exist on type 'User'.
+src/modules/auth/auth.service.ts(47,18): error TS2339: Property 'id' does not exist on type 'User'.
+src/modules/auth/auth.service.ts(102,55): error TS2339: Property 'id' does not exist on type 'User'.
+src/modules/auth/auth.service.ts(175,37): error TS2339: Property 'id' does not exist on type 'User'.
+src/modules/auth/auth.service.ts(184,26): error TS2339: Property 'id' does not exist on type 'User'.
+src/modules/branches/entities/branch.entity.ts(6,28): error TS2307: Cannot find module '../../database/base.entity' or its corresponding type declarations.
+src/modules/users/entities/user.entity.ts(2,28): error TS2307: Cannot find module '../../database/base.entity' or its corresponding type declarations.
+src/modules/users/users.service.ts(27,45): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'FindOptionsWhere<User> | FindOptionsWhere<User>[]'.
+src/modules/users/users.service.ts(37,32): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<User>[]): User[]', gave the following error.
+    Object literal may only specify known properties, and 'email' does not exist in type 'DeepPartial<User>[]'.
+  Overload 2 of 3, '(entityLike: DeepPartial<User>): User', gave the following error.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/modules/users/users.service.ts(47,9): error TS2740: Type 'User[]' is missing the following properties from type 'User': email, passwordHash, firstName, lastName, and 8 more.
+src/modules/users/users.service.ts(55,38): error TS2353: Object literal may only specify known properties, and 'lastActiveAt' does not exist in type '_QueryDeepPartialEntity<User>'.

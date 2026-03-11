@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(PGPASSWORD=Akowuah@1234 psql:*)",
+      "Bash(node:*)",
+      "Bash(lsof:*)",
+      "Bash(/usr/bin/curl:*)",
+      "Bash(pkill:*)",
+      "Bash(npx:*)",
+      "Bash(grep:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}
