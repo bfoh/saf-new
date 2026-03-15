@@ -1,5 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useScrollAnimation, useStaggerAnimation } from '../../../hooks/useScrollAnimation';
+
+const API_URL = ((import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3001') + '/api';
 
 const PLANS = [
   {
@@ -121,9 +123,29 @@ export default function PricingTable() {
   const [status, setStatus] = useState<Status>('idle');
   const [charCount, setCharCount] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    fetch(`${API_URL}/courses`)
+      .then((r) => r.json())
+      .then((res: any) => {
+        const courses = Array.isArray(res) ? res : (res.data ?? []);
+        const map: Record<string, number> = {};
+        for (const c of courses) {
+          const level = c.cefr_level ?? c.cefrLevel;
+          if (level && c.price != null) map[level] = Number(c.price);
+        }
+        setLivePrices(map);
+      })
+      .catch(() => { /* keep static fallback prices */ });
+  }, []);
+
+  const plans = PLANS.map((p) =>
+    livePrices[p.level] != null ? { ...p, price: livePrices[p.level] } : p
+  );
 
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation();
-  const { ref: gridRef, visibleItems } = useStaggerAnimation(PLANS.length);
+  const { ref: gridRef, visibleItems } = useStaggerAnimation(plans.length);
 
   const openModal = (course: string) => {
     setModalCourse(course);
@@ -196,7 +218,7 @@ export default function PricingTable() {
             ref={gridRef as React.RefObject<HTMLDivElement>}
             className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 items-stretch"
           >
-            {PLANS.map((plan, index) => (
+            {plans.map((plan, index) => (
               <div
                 key={plan.level}
                 className={`relative flex flex-col rounded-2xl overflow-hidden border transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${plan.badge === 'Most Popular'

@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AccessToken, TrackSource } from 'livekit-server-sdk';
+import { ConfigService } from '@nestjs/config';
 import { LiveSessionEntity } from './entities/live-session.entity';
 
 @Injectable()
@@ -8,7 +10,32 @@ export class LiveClassroomService {
     constructor(
         @InjectRepository(LiveSessionEntity)
         private readonly sessionRepo: Repository<LiveSessionEntity>,
+        private readonly configService: ConfigService,
     ) {}
+
+    async generateToken(sessionId: string, userId: string, userName: string, isInstructor: boolean) {
+        const apiKey = this.configService.get<string>('LIVEKIT_API_KEY');
+        const apiSecret = this.configService.get<string>('LIVEKIT_API_SECRET');
+
+        const at = new AccessToken(apiKey, apiSecret, {
+            identity: userId,
+            name: userName,
+            metadata: JSON.stringify({ role: isInstructor ? 'instructor' : 'student' }),
+        });
+
+        at.addGrant({
+            roomJoin: true,
+            room: sessionId,
+            canPublish: true,
+            canSubscribe: true,
+            roomAdmin: isInstructor,
+            canPublishData: true,
+            // Allow all participants (instructors and students) to share screens as part of the "functional" goal
+            canPublishSources: [TrackSource.CAMERA, TrackSource.MICROPHONE, TrackSource.SCREEN_SHARE, TrackSource.SCREEN_SHARE_AUDIO],
+        });
+
+        return at.toJwt();
+    }
 
     async createSession(hostId: string, classId: string, title: string): Promise<LiveSessionEntity> {
         const session = this.sessionRepo.create({
@@ -29,9 +56,22 @@ export class LiveClassroomService {
         return session;
     }
 
-    async startSession(sessionId: string, hostId: string): Promise<LiveSessionEntity> {
+    async startSession(sessionId: string, hostId: string, userRole?: string): Promise<LiveSessionEntity> {
         const session = await this.getSession(sessionId);
-        if (session.host?.id !== hostId) throw new ForbiddenException('Only the host can start the session');
+        
+        // Allow if user is either the designated host OR is an admin/instructor
+        const isAuthorizedHost = 
+            session.host?.id === hostId || 
+            userRole === 'admin' || 
+            userRole === 'instructor';
+
+        if (!isAuthorizedHost) {
+            console.error(`[LiveClassroomService] Unauthorized start attempt: User ${hostId} (Role: ${userRole}) tried to start session ${sessionId} owned by ${session.host?.id}`);
+            throw new ForbiddenException('Only the host or an authorized instructor can start the session');
+        }
+
+        if (session.status === 'live') return session;
+
         session.status = 'live';
         session.startedAt = new Date();
         return this.sessionRepo.save(session);

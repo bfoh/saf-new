@@ -22,7 +22,24 @@ async function bootstrap() {
 
     // CORS
     app.enableCors({
-        origin: process.env.WEB_URL || 'http://localhost:3000',
+        origin: (origin, callback) => {
+            // Allow requests with no origin (mobile apps, curl, etc.)
+            if (!origin) return callback(null, true);
+            // Allow any localhost port in dev, plus the configured WEB_URL
+            const allowed = [
+                process.env.WEB_URL || 'http://localhost:3000',
+                'http://localhost:3000',
+                'http://localhost:3001',
+                'http://localhost:3002',
+                'http://localhost:3003',
+                'http://localhost:3004',
+                'http://localhost:3005',
+            ];
+            if (allowed.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error(`CORS: origin ${origin} not allowed`));
+        },
         credentials: true,
     });
 

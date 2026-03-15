@@ -27,6 +27,9 @@ export class CourseEntity extends BaseEntity {
     @Column({ type: 'boolean', default: false })
     is_published: boolean;
 
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, nullable: true })
+    price: number;
+
     @OneToMany(() => CourseModuleEntity, (module) => module.course, { cascade: true })
     modules: CourseModuleEntity[];
 }

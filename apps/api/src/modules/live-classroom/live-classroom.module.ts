@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { LiveClassroomService } from './live-classroom.service';
 import { LiveClassroomGateway } from './live-classroom.gateway';
 import { LiveClassroomController } from './live-classroom.controller';
+import { LiveKitController } from './live-kit.controller';
 
 @Module({
     imports: [
@@ -22,7 +23,7 @@ import { LiveClassroomController } from './live-classroom.controller';
         }),
     ],
     providers: [LiveClassroomService, LiveClassroomGateway],
-    controllers: [LiveClassroomController],
+    controllers: [LiveClassroomController, LiveKitController],
     exports: [LiveClassroomService],
 })
 export class LiveClassroomModule {}

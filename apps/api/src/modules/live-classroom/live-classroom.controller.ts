@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, ParseUUIDPipe, Query } from '@nestjs/common';
 import { LiveClassroomService } from './live-classroom.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
 
 @Controller('live-classroom')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -32,7 +32,7 @@ export class LiveClassroomController {
 
     @Post(':id/start')
     async startSession(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-        return this.service.startSession(id, user.id);
+        return this.service.startSession(id, user.id, user.role);
     }
 
     @Post(':id/end')

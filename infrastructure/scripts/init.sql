@@ -47,6 +47,7 @@ DROP TABLE IF EXISTS lesson_completions       CASCADE;
 DROP TABLE IF EXISTS submissions              CASCADE;
 
 -- Dropping SAF specific tables
+DROP TABLE IF EXISTS appointments             CASCADE;
 DROP TABLE IF EXISTS live_sessions            CASCADE;
 DROP TABLE IF EXISTS exam_submissions         CASCADE;
 DROP TABLE IF EXISTS exam_sections            CASCADE;
@@ -141,9 +142,20 @@ CREATE TABLE courses (
   description TEXT,
   thumbnail_url VARCHAR(255),
   is_published BOOLEAN DEFAULT false,
+  price NUMERIC(10,2) DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Add price column to existing deployments that ran init.sql before this migration
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'courses' AND column_name = 'price'
+  ) THEN
+    ALTER TABLE courses ADD COLUMN price NUMERIC(10,2) DEFAULT 0;
+  END IF;
+END $$;
 
 -- ASSIGNMENTS
 CREATE TABLE assignments (
@@ -295,6 +307,19 @@ CREATE POLICY "Participants view live sessions" ON live_sessions FOR SELECT TO a
 
 CREATE POLICY "Hosts manage live sessions" ON live_sessions FOR ALL TO authenticated
   USING (host_id = auth.uid() OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'superadmin')));
+
+-- APPOINTMENTS (from website voice/text AI agent)
+CREATE TABLE IF NOT EXISTS appointments (
+    id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name           VARCHAR(255) NOT NULL,
+    email          VARCHAR(255) NOT NULL,
+    phone          VARCHAR(50),
+    course         VARCHAR(255),
+    preferred_date VARCHAR(255),
+    notes          TEXT,
+    source         VARCHAR(50) NOT NULL DEFAULT 'voice_agent',
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 -- SEED
 INSERT INTO branches (id, name, address) VALUES ('0b111111-1111-1111-1111-111111111111', 'Accra Main', 'Accra');
