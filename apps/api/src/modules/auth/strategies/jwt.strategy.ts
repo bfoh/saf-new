@@ -25,10 +25,22 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         configService: ConfigService,
         private readonly usersService: UsersService,
     ) {
+        // Try ConfigService first, fall back to process.env directly
+        const secret =
+            configService.get<string>('SUPABASE_JWT_SECRET') ||
+            process.env.SUPABASE_JWT_SECRET;
+
+        // Startup diagnostic — visible in Render logs
+        console.log(
+            '[JwtStrategy] SUPABASE_JWT_SECRET loaded:',
+            secret ? `yes (${secret.length} chars)` : 'NO — JWT auth will fail!',
+        );
+
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: configService.get<string>('SUPABASE_JWT_SECRET'),
+            secretOrKey: secret,
+            algorithms: ['HS256'], // Supabase uses HS256
         });
     }
 

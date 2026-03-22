@@ -21,6 +21,12 @@ export class AppController {
   @Public()
   @Get('health')
   health() {
-    return { status: 'ok' };
+    const secret = process.env.SUPABASE_JWT_SECRET;
+    return {
+      status: 'ok',
+      env: process.env.NODE_ENV || 'not set',
+      jwtSecretLoaded: !!secret,
+      jwtSecretLength: secret?.length ?? 0,
+    };
   }
 }
