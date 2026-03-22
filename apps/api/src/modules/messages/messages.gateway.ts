@@ -55,7 +55,7 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
             const hmacSecret = this.configService.get<string>('SUPABASE_JWT_SECRET') || process.env.SUPABASE_JWT_SECRET;
 
             try {
-                const { verifySupabaseJwt } = await import('../../common/utils/verify-jwt');
+                const { verifySupabaseJwt } = await import('../../common/utils/verify-jwt.js');
                 const payload = await verifySupabaseJwt(token, supabaseUrl, hmacSecret);
                 if (!payload?.sub) throw new Error('Invalid token payload');
                 userId = payload.sub;

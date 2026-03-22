@@ -63,7 +63,7 @@ export class LiveClassroomGateway implements OnGatewayConnection, OnGatewayDisco
         const hmacSecret = this.configService.get<string>('SUPABASE_JWT_SECRET') || process.env.SUPABASE_JWT_SECRET;
 
         try {
-            const { verifySupabaseJwt } = await import('../../common/utils/verify-jwt');
+            const { verifySupabaseJwt } = await import('../../common/utils/verify-jwt.js');
             const payload = await verifySupabaseJwt(token, supabaseUrl, hmacSecret);
             return payload?.sub ?? null;
         } catch {
