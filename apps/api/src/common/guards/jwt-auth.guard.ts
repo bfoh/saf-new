@@ -1,4 +1,4 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -29,7 +29,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         // Token present → try real JWT validation
         try {
             return await (super.canActivate(context) as Promise<boolean>);
-        } catch {
+        } catch (err) {
             // Token present but invalid — in dev only, decode (without verifying signature)
             // to get the real user identity so data queries use correct IDs
             if (isDev) {
@@ -37,7 +37,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 this.injectMockUser(request, token || null);
                 return true;
             }
-            return false;
+            // In production, throw 401 (not 403) so the frontend knows auth failed
+            console.error('[JwtAuthGuard] Token validation failed:', err?.message || err);
+            throw new UnauthorizedException('Invalid or expired token');
         }
     }
 
