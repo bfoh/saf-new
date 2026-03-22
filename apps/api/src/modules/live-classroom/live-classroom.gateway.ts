@@ -59,15 +59,18 @@ export class LiveClassroomGateway implements OnGatewayConnection, OnGatewayDisco
         if (!token) return null;
 
         const isDev = this.configService.get('NODE_ENV') !== 'production';
+        const supabaseUrl = this.configService.get<string>('SUPABASE_URL') || process.env.SUPABASE_URL || '';
+        const hmacSecret = this.configService.get<string>('SUPABASE_JWT_SECRET') || process.env.SUPABASE_JWT_SECRET;
 
         try {
-            const payload = this.jwtService.verify<AuthPayload>(token, {
-                secret: this.configService.get<string>('SUPABASE_JWT_SECRET'),
-            });
-            return payload.sub;
+            const { verifySupabaseJwt } = await import('../../common/utils/verify-jwt');
+            const payload = await verifySupabaseJwt(token, supabaseUrl, hmacSecret);
+            return payload?.sub ?? null;
         } catch {
             if (!isDev) return null;
-            const decoded = this.jwtService.decode(token) as AuthPayload | null;
+            // In dev: decode without verifying
+            const jwt = await import('jsonwebtoken');
+            const decoded = jwt.decode(token) as AuthPayload | null;
             return decoded?.sub ?? null;
         }
     }

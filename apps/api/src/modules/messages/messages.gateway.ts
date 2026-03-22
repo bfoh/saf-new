@@ -51,11 +51,13 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
 
             let userId: string;
             const isDev = this.configService.get('NODE_ENV') !== 'production';
+            const supabaseUrl = this.configService.get<string>('SUPABASE_URL') || process.env.SUPABASE_URL || '';
+            const hmacSecret = this.configService.get<string>('SUPABASE_JWT_SECRET') || process.env.SUPABASE_JWT_SECRET;
 
             try {
-                const payload = this.jwtService.verify<AuthPayload>(token, {
-                    secret: this.configService.get<string>('SUPABASE_JWT_SECRET'),
-                });
+                const { verifySupabaseJwt } = await import('../../common/utils/verify-jwt');
+                const payload = await verifySupabaseJwt(token, supabaseUrl, hmacSecret);
+                if (!payload?.sub) throw new Error('Invalid token payload');
                 userId = payload.sub;
             } catch (verifyErr) {
                 if (!isDev) {
